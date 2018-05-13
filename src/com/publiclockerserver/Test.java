@@ -9,16 +9,17 @@ public class Test {
 	public static void main(String[] args) {
 		int[] arr= {12345,23456,34567,4567,56789};
 		
-		List<String> ss =new ArrayList();
+		List  ss =new ArrayList();
+		ss.add("'aaa'");
 		ss.add("aaa");
 		ss.add("aaa");
-		ss.add("aaa");
-		ss.add("aaa");
+		ss.add("'123'");
 		
 		String sss = String.join("-", ss);
 		
 		String s = Arrays.toString(arr);
-		System.out.print(sss);
+		System.out.println(sss);
+		System.out.println(ss);
 	}
 
 }

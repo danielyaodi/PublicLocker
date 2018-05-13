@@ -37,14 +37,56 @@ public class C3p0Utils {
 	public static ResultSet getResultSet(Connection conn, String sql) {
 
 		ResultSet rs = null;
-
+		PreparedStatement pstmt = getPstmt(conn, sql);
 		try {
-			rs = getPstmt(conn, sql).executeQuery();
+			rs = pstmt.executeQuery();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			close(pstmt);
+			// close(conn);
 		}
+
 		return rs;
+	}
+
+	public static void executeQuery(String sql) {
+
+		Connection conn = C3p0Utils.getConnection();
+		PreparedStatement pstmt = C3p0Utils.getPstmt(conn, sql);
+		try {
+			pstmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+
+			if (pstmt != null) {
+				C3p0Utils.close(pstmt);
+			}
+			if (conn != null) {
+				C3p0Utils.close(conn);
+
+			}
+
+		}
+
+	}
+
+	public static void executeQuery(Connection conn, String sql) {
+
+		PreparedStatement pstmt = C3p0Utils.getPstmt(conn, sql);
+		try {
+			pstmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+
+			if (pstmt != null) {
+				C3p0Utils.close(pstmt);
+			}
+
+		}
+
 	}
 
 	public static void close(Connection conn) {

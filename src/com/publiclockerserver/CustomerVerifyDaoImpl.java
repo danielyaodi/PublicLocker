@@ -22,8 +22,8 @@ class CustomerVerifyDaoImpl implements CustomerVerifyDao {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}finally {
-			C3p0Utils.close(conn);
 			C3p0Utils.close(rs);
+			C3p0Utils.close(conn);
 		}
 		return flag;
 	}
