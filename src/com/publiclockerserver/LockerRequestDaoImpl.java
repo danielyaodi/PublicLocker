@@ -56,22 +56,21 @@ public class LockerRequestDaoImpl implements LockerRequestDao {
 		}
 		String lockerStr = String.join(",", lockerList); // convert the list to string for sql;
 
-		String sql = "select street, city,state, zipcode from LockerAddress where lockerID in (" + lockerStr + ")";
+		String sql = "select lockerID,street, city,state, zipcode from LockerAddress where lockerID in (" + lockerStr + ")";
 		ResultSet addressRS = C3p0Utils.getResultSet(conn, sql); // get address columns to RS;
 		List<Map<String, String>> addressList = getAddressMap(addressRS); // call this method to export address columns
 																			// to Map list.
 
-		commitRecorder(conn,cellMap, lockerList, orderNumber, apiKey, packageQty);
+		commitRecorder(conn, cellMap, lockerList, orderNumber, apiKey, packageQty);
 		C3p0Utils.close(cellRS);
 		C3p0Utils.close(addressRS);
 		C3p0Utils.close(conn);
-		
-		
+
 		return addressList;
 	}
 
-	private void commitRecorder(Connection conn,HashMap<String, String> cellMap, List<String> lockerList, String orderNumber,
-			String apiKey, int packageQty) {
+	private void commitRecorder(Connection conn, HashMap<String, String> cellMap, List<String> lockerList,
+			String orderNumber, String apiKey, int packageQty) {
 		List<String> list = new ArrayList<String>();
 		List<String> cellCommitList = new ArrayList<String>();
 
@@ -110,8 +109,8 @@ public class LockerRequestDaoImpl implements LockerRequestDao {
 		String cellCommittedSql = "UPDATE LockerCellInfo SET cellCommitted = 1 WHERE cellID in ( "
 				+ String.join(",", cellCommitList) + ")";
 
-		C3p0Utils.executeQuery(conn,commitSql); // insert committed cellIDs to AssignedToCustomer table;
-		C3p0Utils.executeQuery(conn,cellCommittedSql); // change LockerCellInfo table's cellCommitted to 1;
+		C3p0Utils.executeUpdate(conn, commitSql); // insert committed cellIDs to AssignedToCustomer table;
+		C3p0Utils.executeUpdate(conn, cellCommittedSql); // change LockerCellInfo table's cellCommitted to 1;
 		purgeTimer.purgeCommittedCellTimer(orderNumber, cellCommitList);
 
 	}
@@ -139,6 +138,7 @@ public class LockerRequestDaoImpl implements LockerRequestDao {
 		Map<String, String> map = new HashMap<String, String>();
 		try {
 			while (rs.next()) {
+				map.put("lockerID", rs.getString("lockerID"));
 				map.put("street", rs.getString("street"));
 				map.put("city", rs.getString("city"));
 				map.put("state", rs.getString("state"));
@@ -147,7 +147,6 @@ public class LockerRequestDaoImpl implements LockerRequestDao {
 
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

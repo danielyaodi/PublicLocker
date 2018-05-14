@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
@@ -44,13 +45,12 @@ public class C3p0Utils {
 			e.printStackTrace();
 		} finally {
 			close(pstmt);
-			// close(conn);
 		}
 
 		return rs;
 	}
 
-	public static void executeQuery(String sql) {
+	public static void executeUpdate(String sql) {
 
 		Connection conn = C3p0Utils.getConnection();
 		PreparedStatement pstmt = C3p0Utils.getPstmt(conn, sql);
@@ -72,7 +72,7 @@ public class C3p0Utils {
 
 	}
 
-	public static void executeQuery(Connection conn, String sql) {
+	public static void executeUpdate(Connection conn, String sql) {
 
 		PreparedStatement pstmt = C3p0Utils.getPstmt(conn, sql);
 		try {
@@ -88,6 +88,31 @@ public class C3p0Utils {
 		}
 
 	}
+	
+	public static String getStringFromRS(ResultSet rs, String column) {
+		String str=null;
+		ArrayList<String> list = new ArrayList<String>();
+		try {
+			while(rs.next()){
+				list.add(rs.getString(column));
+				
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		str=String.join(",", list);
+		
+		return str;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
 
 	public static void close(Connection conn) {
 

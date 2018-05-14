@@ -13,9 +13,9 @@ public class purgeTimer {
 			public void run() {
 				String cellCommittedSql = "UPDATE LockerCellInfo SET cellCommitted = 0 WHERE cellID in ( "
 						+ String.join(",", cellCommitList) + ")";
-				C3p0Utils.executeQuery(cellCommittedSql);
+				C3p0Utils.executeUpdate(cellCommittedSql);
 				String removeCommitSql = "DELETE FROM AssignedToCustomer WHERE orderNumber = '" + orderNumber + "'";
-				C3p0Utils.executeQuery(removeCommitSql);
+				C3p0Utils.executeUpdate(removeCommitSql);
 			}
 
 		}, 300000);
