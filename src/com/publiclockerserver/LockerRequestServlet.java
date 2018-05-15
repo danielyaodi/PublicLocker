@@ -17,97 +17,42 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.gson.Gson;
 
-/**
- * Servlet implementation class AddressQueryServlet
- */
 @WebServlet("/AddressQueryServlet")
 public class LockerRequestServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
-	/**
-	 * @see HttpServlet#HttpServlet()
-	 */
 	public LockerRequestServlet() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
-	 *      response)
-	 */
-	int i =0;
+	int i = 0;
+
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		// TODO Auto-generated method stub
 		response.getWriter().append("Served at: ").append(request.getContextPath());
-		
-		System.out.println(i);
+
+		System.out.println("***********"+i);
 		i++;
 	}
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
-	 *      response)
-	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		System.out.println("do post");
 
-		BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream()));
-		StringBuilder sb = new StringBuilder();
-		String str = null;
-		while ((str = br.readLine()) != null) {
-			sb.append(str);
-		}
-		str = sb.toString();
-		System.out.println(str);
-		br.close();
-		Gson gson = new Gson();
-		AddressRequest_VO clientRequest = gson.fromJson(str, AddressRequest_VO.class);
-		
-		List<Map<String, String>> addd = new ArrayList<Map<String, String>> ();
-		Map<String,String> map = new HashMap<String,String>();
-		
-		for(int i =0;i<3;i++) {
-			map.put("address", String.valueOf(i));
-			map.put("city", String.valueOf(i));
-			map.put("state", String.valueOf(i));
-			map.put("zipcode", String.valueOf(i));
-			addd.add(map);
-			
-		}
-		 
-		String gg=gson.toJson(addd);
-		System.out.println("gg:"+addd);
-		System.out.println("gg:"+gg);
+		String requestStr = BeanUtils.servletRequestReader(request.getInputStream());   //read all json file from request.
 
-//		if(new VerificationDaoImpl().verification(order.getApiKey(), "CustomerInfo"	)) {
-//			LockerRequestDao lockerRequest = LockerRequestDaoFactory.getLockerRequestDaoInstance();
-//			List<Map<String, String>> addrList = lockerRequest.addressQuery(clientRequest.getApiKey(),
-//					clientRequest.getOrderNumber(), clientRequest.getPackageType(), clientRequest.getPackageQty(),
-//					clientRequest.getZipcode());
-//			
-//
-//			
-//			
-//
-//			
-//			
-//
-//		}
-		
-		
-        response.getOutputStream().write(gg.getBytes());
-	 
-//		PrintWriter out = response.getWriter();
-//		out.println("Helloworrrd");
-		
-		
-		
-		
-		
-		//doGet(request, response);
+		Gson gson = new Gson();
+		AddressRequest_VO addressRequest = gson.fromJson(requestStr, AddressRequest_VO.class);  // convert json to AddressRequest_VO class
+
+		if (BeanUtils.checkAPIKey(addressRequest.getApiKey())) {			//verify client valid APIKey.
+			List<Map<String, String>> addressMapList = DaoFactory.getLockerRequestDaoInstance(addressRequest)
+					.addressQuery();			//get address list<map>;
+
+			String addressJson = gson.toJson(addressMapList);  //convert to json;
+
+			response.getOutputStream().write(addressJson.getBytes());		// send json back to client through response obj.
+
+		}
 
 	}
 

@@ -11,13 +11,26 @@ import java.util.List;
 import java.util.Map;
 
 public class LockerRequestDaoImpl implements LockerRequestDao {
+	LockerRequestDaoImpl(AddressRequest_VO address) {
+		super();
+		this.apiKey = address.getApiKey();
+		this.orderNumber = address.getOrderNumber();
+		this.cellType = address.getPackageType();
+		this.packageQty = address.getPackageQty();
+		this.zipcode = address.getZipcode();
+	}
+
+	private String apiKey;
+	private String orderNumber;
+	private int cellType;
+	private int packageQty;
+	private int[] zipcode;
+	Connection conn = C3p0Utils.getConnection();
 
 	@Override
-	public List<Map<String, String>> addressQuery(String apiKey, String orderNumber, int cellType, int packageQty,
-			int[] zipcode) {
+	public List<Map<String, String>> addressQuery() {
 		String zipStr = Arrays.toString(zipcode); // convert zipcode array to zipcode string;
 		zipStr = zipStr.substring(1, zipStr.length() - 1); // remove [ ]from converted string;
-		Connection conn = C3p0Utils.getConnection();
 		String getCellAndLockerSQL = SQLstatement.getCellAndLockerSQL(zipStr, cellType);
 
 		ResultSet cellRS = C3p0Utils.getResultSet(conn, getCellAndLockerSQL); // get cellID and lockerID to RS;
@@ -45,13 +58,12 @@ public class LockerRequestDaoImpl implements LockerRequestDao {
 		}
 		String lockerStr = String.join(",", lockerList); // convert the list to string for sql;
 
-		String sql = "select lockerID,street, city,state, zipcode from LockerAddress where lockerID in (" + lockerStr
-				+ ")";
+		String sql = SQLstatement.getLockerAddressSQL(lockerStr);
 		ResultSet addressRS = C3p0Utils.getResultSet(conn, sql); // get address columns to RS;
 		List<Map<String, String>> addressList = getAddressMap(addressRS); // call this method to export address columns
 																			// to Map list.
 
-		commitRecorder(conn, cellMap, lockerList, orderNumber, apiKey, packageQty);
+		commitRecorder(cellMap, lockerList, orderNumber, apiKey, packageQty);
 		C3p0Utils.close(cellRS);
 		C3p0Utils.close(addressRS);
 		C3p0Utils.close(conn);
@@ -78,8 +90,8 @@ public class LockerRequestDaoImpl implements LockerRequestDao {
 		return null;
 	}
 
-	private void commitRecorder(Connection conn, HashMap<String, String> cellMap, List<String> lockerList,
-			String orderNumber, String apiKey, int packageQty) {
+	private void commitRecorder(HashMap<String, String> cellMap, List<String> lockerList, String orderNumber,
+			String apiKey, int packageQty) {
 		List<String> list = new ArrayList<String>();
 		List<String> cellCommitList = new ArrayList<String>();
 
@@ -111,36 +123,25 @@ public class LockerRequestDaoImpl implements LockerRequestDao {
 																// and add to another list.
 		}
 
-		String values = String.join(",", list); // covert the list to sql insert format for multiple record.
+		insertAssignedToCustomer(list); // insert committed cellIDs to AssignedToCustomer table;
 
-		String commitSql = "INSERT INTO AssignedToCustomer (cellID, orderNumber,apiKey,packageQty,lockerID) VALUES "
-				+ values;
-		String cellCommittedSql = "UPDATE LockerCellInfo SET cellCommitted = 1 WHERE cellID in ( "
-				+ String.join(",", cellCommitList) + ")";
-
-		C3p0Utils.executeUpdate(conn, commitSql); // insert committed cellIDs to AssignedToCustomer table;
-		C3p0Utils.executeUpdate(conn, cellCommittedSql); // change LockerCellInfo table's cellCommitted to 1;
+		cellCommittedToOne(cellCommitList); // change LockerCellInfo table's cellCommitted to 1;
 		purgeTimer.purgeCommittedCellTimer(orderNumber, cellCommitList);
 
 	}
 
-	// private void setCellCommited(List<String> cellCommitList) {
-	// ;
-	// Connection conn = C3p0Utils.getConnection();
-	// PreparedStatement pstmt = C3p0Utils.getPstmt(conn, sql);
-	// try {
-	// pstmt.executeUpdate();
-	// } catch (SQLException e) {
-	// e.printStackTrace();
-	// }
-	// if (pstmt != null) {
-	// C3p0Utils.close(pstmt);
-	// }
-	// if (conn != null) {
-	// C3p0Utils.close(conn);
-	// }
-	//
-	// }
+	private void cellCommittedToOne(List<String> cellCommitList) {
+		String cellCommittedSql = SQLstatement.cellCommittedToOneSQL(cellCommitList);
+
+		C3p0Utils.executeUpdate(conn, cellCommittedSql);
+
+	}
+
+	private void insertAssignedToCustomer(List<String> list) {
+		String commitSQL = SQLstatement.commitSQL + String.join(",", list);
+		C3p0Utils.executeUpdate(conn, commitSQL);
+
+	}
 
 	private List<Map<String, String>> getAddressMap(ResultSet rs) {
 		List<Map<String, String>> list = new ArrayList<Map<String, String>>();

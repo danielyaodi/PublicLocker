@@ -9,7 +9,7 @@ public class DaoFactory {
 		return new VerificationDaoImpl();
 	}
 
-	static LockerRequestDaoImpl getLockerRequestDaoInstance() {
-		return new LockerRequestDaoImpl();
+	static LockerRequestDaoImpl getLockerRequestDaoInstance(AddressRequest_VO address) {
+		return new LockerRequestDaoImpl(address);
 	}
 }

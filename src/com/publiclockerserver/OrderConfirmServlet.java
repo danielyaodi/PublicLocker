@@ -20,50 +20,34 @@ import com.google.gson.Gson;
 public class OrderConfirmServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
-	/**
-	 * @see HttpServlet#HttpServlet()
-	 */
 	public OrderConfirmServlet() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
-	 *      response)
-	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		// TODO Auto-generated method stub
 		response.getWriter().append("Served at: ").append(request.getContextPath());
 	}
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
-	 *      response)
-	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		// TODO Auto-generated method stub
+
 		doGet(request, response);
-		BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream()));
-		String str = null;
-		StringBuilder sb = new StringBuilder();
-		while ((str = br.readLine()) != null) {
-			sb.append(str);
-		}
-		str = sb.toString();
+
+		String orderConfirmStr = BeanUtils.servletRequestReader(request.getInputStream()); // read all json file from
+																							// request.
 
 		Gson gson = new Gson();
-		Order_VO order = gson.fromJson(str, Order_VO.class);
+		Order_VO order = gson.fromJson(orderConfirmStr, Order_VO.class); // convert json to Order_VO class
 
-		if (BeanUtils.checkAPIKey(order.getApiKey())) {
+		if (BeanUtils.checkAPIKey(order.getApiKey())) { // verify if valid client APIkey
 
-			if (BeanUtils.checkOrderNumber(order.getOrderNumber())) {
+			if (BeanUtils.checkOrderNumber(order.getOrderNumber())) { // verify if valid orderNumber, timeout since
+																		// request.
 
-				Map<String, String> codeMap = DaoFactory.getConfirmOrderDaoInstance(order).confirmOrder();
-				String codeStr = gson.toJson(codeMap);
-				response.getOutputStream().write(codeStr.getBytes());
+				Map<String, String> codeMap = DaoFactory.getConfirmOrderDaoInstance(order).confirmOrder(); //get deliveryCode & pickupCode;
+				String codeStr = gson.toJson(codeMap);			//covert to json
+				response.getOutputStream().write(codeStr.getBytes()); 		// send json back to client through response obj.
 			}
 
 		}

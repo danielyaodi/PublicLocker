@@ -1,9 +1,14 @@
 package com.publiclockerserver;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.UUID;
+
+import javax.servlet.ServletInputStream;
 
 public class BeanUtils {
 	public static String getStringFromRS(ResultSet rs, String column) {
@@ -50,10 +55,32 @@ public class BeanUtils {
 	public static Boolean checkOrderNumber(String orderNumber) {
 		return DaoFactory.getVerificationDaoInstance().verification("orderNumber", "AssignedToCustomer", orderNumber);
 	}
-	
-	//************  ***********
-	public static Boolean checkCode(String apiKey) {
-		return DaoFactory.getVerificationDaoInstance().verification("apiKey", "CustomerInfo", apiKey);
+
+	// ************ ***********
+	public static Boolean checkCode(String cellID, String code) {
+		return DaoFactory.getVerificationDaoInstance().verification(cellID, code);
+	}
+
+	public static String servletRequestReader(ServletInputStream inputStream) {
+
+		BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+		StringBuilder sb = new StringBuilder();
+		String str = null;
+		try {
+			while ((str = br.readLine()) != null) {
+				sb.append(str);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		str = sb.toString();
+		try {
+			br.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return str;
 	}
 
 }
