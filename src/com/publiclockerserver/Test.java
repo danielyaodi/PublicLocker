@@ -25,15 +25,4 @@ public class Test {
 
 }
 
-class A{
-	A{
-		System.out.println("a");
-		getInt();
-	}
-
-	private int getInt() {
-		return 1;
-		
-	}
-	
-}
+ 
