@@ -18,11 +18,9 @@ public class LockerRequestDaoImpl implements LockerRequestDao {
 		String zipStr = Arrays.toString(zipcode); // convert zipcode array to zipcode string;
 		zipStr = zipStr.substring(1, zipStr.length() - 1); // remove [ ]from converted string;
 		Connection conn = C3p0Utils.getConnection();
-		String getCell = "select cellID,lockerID from CellInfo where lockerID in "
-				+ "(select lockerID from LockerAddress where zipcode in (" + zipStr + ") and cellHealth = 1 and "
-				+ "cellAvailability=1 and cellCommitted=0 and cellType =" + cellType + ")";
+		String getCellAndLockerSQL = SQLstatement.getCellAndLockerSQL(zipStr, cellType);
 
-		ResultSet cellRS = C3p0Utils.getResultSet(conn, getCell); // get cellID and lockerID to RS;
+		ResultSet cellRS = C3p0Utils.getResultSet(conn, getCellAndLockerSQL); // get cellID and lockerID to RS;
 
 		HashMap<String, String> cellMap = new HashMap<>();
 		try {
@@ -33,21 +31,12 @@ public class LockerRequestDaoImpl implements LockerRequestDao {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		HashMap<String, Integer> lockerCount = new HashMap<>();
-		for (Map.Entry<String, String> entry : cellMap.entrySet()) {
-			if (lockerCount.containsKey(entry.getValue())) {
-				lockerCount.put(entry.getValue(), lockerCount.get(entry.getValue()) + 1); // count how many lockerID
-																							// qualify for the
-																							// packageQty;
 
-			} else {
-				lockerCount.put(entry.getValue(), 1);
-			}
-
-		}
+		HashMap<String, Integer> lockerCountMap = new HashMap<String, Integer>();
+		lockerCounter(cellMap, lockerCountMap);
 
 		List<String> lockerList = new ArrayList<String>();
-		for (Map.Entry<String, Integer> entry : lockerCount.entrySet()) {
+		for (Map.Entry<String, Integer> entry : lockerCountMap.entrySet()) {
 			if (entry.getValue() >= packageQty) {
 				lockerList.add(entry.getKey()); // export all qualified lockerID to a list;
 
@@ -56,7 +45,8 @@ public class LockerRequestDaoImpl implements LockerRequestDao {
 		}
 		String lockerStr = String.join(",", lockerList); // convert the list to string for sql;
 
-		String sql = "select lockerID,street, city,state, zipcode from LockerAddress where lockerID in (" + lockerStr + ")";
+		String sql = "select lockerID,street, city,state, zipcode from LockerAddress where lockerID in (" + lockerStr
+				+ ")";
 		ResultSet addressRS = C3p0Utils.getResultSet(conn, sql); // get address columns to RS;
 		List<Map<String, String>> addressList = getAddressMap(addressRS); // call this method to export address columns
 																			// to Map list.
@@ -67,6 +57,25 @@ public class LockerRequestDaoImpl implements LockerRequestDao {
 		C3p0Utils.close(conn);
 
 		return addressList;
+	}
+
+	private HashMap<String, Integer> lockerCounter(HashMap<String, String> cellMap,
+			HashMap<String, Integer> lockerCountMap) {
+
+		for (Map.Entry<String, String> entry : cellMap.entrySet()) {
+			if (lockerCountMap.containsKey(entry.getValue())) {
+				lockerCountMap.put(entry.getValue(), lockerCountMap.get(entry.getValue()) + 1); // count how many
+																								// lockerID
+				// qualify for the
+				// packageQty;
+
+			} else {
+				lockerCountMap.put(entry.getValue(), 1);
+			}
+
+		}
+
+		return null;
 	}
 
 	private void commitRecorder(Connection conn, HashMap<String, String> cellMap, List<String> lockerList,

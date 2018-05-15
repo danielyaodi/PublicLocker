@@ -88,31 +88,6 @@ public class C3p0Utils {
 		}
 
 	}
-	
-	public static String getStringFromRS(ResultSet rs, String column) {
-		String str=null;
-		ArrayList<String> list = new ArrayList<String>();
-		try {
-			while(rs.next()){
-				list.add(rs.getString(column));
-				
-			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		str=String.join(",", list);
-		
-		return str;
-	}
-	
-	
-	
-	
-	
-	
-	
-	
 
 	public static void close(Connection conn) {
 
