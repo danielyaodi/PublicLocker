@@ -13,10 +13,12 @@ class VerificationDaoImpl implements VerificationDao {
 		ResultSet rs = C3p0Utils.getResultSet(conn, sql);
 		boolean flag = false;
 		try {
+
 			if (rs.getString(column).equals(value)) {
 				flag = true;
 			} else
 				flag = false;
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
@@ -27,24 +29,28 @@ class VerificationDaoImpl implements VerificationDao {
 	}
 
 	@Override
-	public boolean verification(String column, String value) {
+	public int verification(String column, String value) {
 
-		// String sql = SQLstatement.codeVerificationSQL(column);
-		// Connection conn = C3p0Utils.getConnection();
-		// ResultSet rs = C3p0Utils.getResultSet(conn, sql);
-		// boolean flag = false;
-		// try {
-		// if (rs.getString("deliveryCode").equals(value)) {
-		// flag = true;
-		// } else
-		// flag = false;
-		// } catch (SQLException e) {
-		// e.printStackTrace();
-		// } finally {
-		// C3p0Utils.close(rs);
-		// C3p0Utils.close(conn);
-		// }
-		return false;
+		String sql = SQLstatement.codeVerificationSQL(column);
+		Connection conn = C3p0Utils.getConnection();
+		ResultSet rs = C3p0Utils.getResultSet(conn, sql);
+		int codeType = 0; // codeType 1 = deliveryCode, 2 = pickupCode.
+		try {
+
+			if (rs.getString("deliveryCode").equals(value)) {
+				codeType = 1;
+
+			} else if (rs.getString("pickupCode").equals(value)) {
+				codeType = 2;
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			C3p0Utils.close(rs);
+			C3p0Utils.close(conn);
+		}
+		return codeType;
 	}
 
 }

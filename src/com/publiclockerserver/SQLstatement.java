@@ -50,7 +50,12 @@ public class SQLstatement {
 		return "UPDATE LockerCellInfo SET cellCommitted = 0 WHERE cellID in ( " + String.join(",", cellCommitList)
 				+ ")";
 	}
-
+	
+	static String removeDeliveryCodeSQL(String cellID) {
+		return "UPDATE ConfirmedOrder SET deliveryCode = NULL WHERE cellID = '"+cellID+"'";
+	}
+	
+	
 	static String removeCommitSQL(String orderNumber) {
 		return "DELETE FROM AssignedToCustomer WHERE orderNumber = '" + orderNumber + "'";
 	}

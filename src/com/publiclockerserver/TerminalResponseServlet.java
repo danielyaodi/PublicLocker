@@ -23,8 +23,13 @@ public class TerminalResponseServlet extends HttpServlet {
 		String codeStr = BeanUtils.servletRequestReader(request.getInputStream());
 		Gson gson = new Gson();
 		TerminalCode_VO terminalCode = gson.fromJson(codeStr, TerminalCode_VO.class);
-		if (BeanUtils.checkCode(terminalCode.getCellID(), terminalCode.getCode()))
-			;
+		int codeType = BeanUtils.checkCode(terminalCode.getCellID(), terminalCode.getCode());
+		if (codeType == 1) {   // ==deliveryCode
+			deliveryProcess(terminalCode);
+
+		} else if (codeType == 2) {  //==pickupCode
+			pickupProcess();
+		}
 
 	}
 

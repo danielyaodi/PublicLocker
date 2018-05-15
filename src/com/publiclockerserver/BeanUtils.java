@@ -57,7 +57,7 @@ public class BeanUtils {
 	}
 
 	// ************ ***********
-	public static Boolean checkCode(String cellID, String code) {
+	public static int checkCode(String cellID, String code) {
 		return DaoFactory.getVerificationDaoInstance().verification(cellID, code);
 	}
 
