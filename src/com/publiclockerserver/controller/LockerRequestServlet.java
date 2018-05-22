@@ -1,4 +1,4 @@
-package com.publiclockerserver;
+package com.publiclockerserver.controller;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,8 +16,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.gson.Gson;
+import com.publiclockerserver.DaoFactory;
+import com.publiclockerserver.pojo.AddressRequest_VO;
+import com.publiclockerserver.utils.BeanUtils;
 
-@WebServlet("/AddressQueryServlet")
+@WebServlet("/LockerRequestServlet")
 public class LockerRequestServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
@@ -31,7 +34,7 @@ public class LockerRequestServlet extends HttpServlet {
 			throws ServletException, IOException {
 		response.getWriter().append("Served at: ").append(request.getContextPath());
 
-		System.out.println("***********"+i);
+		System.out.println("***********" + i);
 		i++;
 	}
 
@@ -39,20 +42,18 @@ public class LockerRequestServlet extends HttpServlet {
 			throws ServletException, IOException {
 		System.out.println("do post");
 
-		String requestStr = BeanUtils.servletRequestReader(request.getInputStream());   //read all json file from request.
+		String requestStr = BeanUtils.servletRequestReader(request.getInputStream()); // read all json file from
+																						// request.
 
 		Gson gson = new Gson();
-		AddressRequest_VO addressRequest = gson.fromJson(requestStr, AddressRequest_VO.class);  // convert json to AddressRequest_VO class
+		AddressRequest_VO addressRequest = gson.fromJson(requestStr, AddressRequest_VO.class); // convert json to
+																								// AddressRequest_VO
+																								// class
 
-		if (BeanUtils.checkAPIKey(addressRequest.getApiKey())) {			//verify client valid APIKey.
-			List<Map<String, String>> addressMapList = DaoFactory.getLockerRequestDaoInstance(addressRequest)
-					.addressQuery();			//get address list<map>;
+		String addressJson = DaoFactory.getLockerRequestDaoInstance(addressRequest) // convert to jsonString;
+				.addressQuery();
 
-			String addressJson = gson.toJson(addressMapList);  //convert to json;
-
-			response.getOutputStream().write(addressJson.getBytes());		// send json back to client through response obj.
-
-		}
+		response.getOutputStream().write(addressJson.getBytes()); // send json back to client through response obj.
 
 	}
 

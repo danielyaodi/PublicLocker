@@ -1,10 +1,15 @@
-package com.publiclockerserver;
+package com.publiclockerserver.daoImpl;
 
 import java.sql.Connection;
+  
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-class VerificationDaoImpl implements VerificationDao {
+import com.publiclockerserver.* ;
+import com.publiclockerserver.utils.* ;
+import com.publiclockerserver.dao.VerificationDao;
+
+public class VerificationDaoImpl implements VerificationDao {
 
 	@Override
 	public boolean verification(String column, String table, String value) {

@@ -1,11 +1,9 @@
-package com.publiclockerserver;
+package com.publiclockerserver.utils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 public class C3p0Utils {
@@ -96,7 +94,6 @@ public class C3p0Utils {
 				conn.close();
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

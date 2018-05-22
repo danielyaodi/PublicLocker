@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.publiclockerserver.utils.C3p0Utils;
+
 public class purgeTimer {
 	public static void purgeCommittedCellTimer(String orderNumber, List<String> cellCommitList) {
 		Timer timer = new Timer();

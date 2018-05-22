@@ -1,4 +1,4 @@
-package com.publiclockerserver;
+package com.publiclockerserver.pojo;
 
 public class AddressRequest_VO {
 
@@ -15,23 +15,23 @@ public class AddressRequest_VO {
 	private int packageType, packageQty;
 	private int[]zipcode;
 
-	String getApiKey() {
+	public String getApiKey() {
 		return apiKey;
 	}
 
-	String getOrderNumber() {
+	public String getOrderNumber() {
 		return orderNumber;
 	}
 
-	int getPackageType() {
+	public int getPackageType() {
 		return packageType;
 	}
 
-	int getPackageQty() {
+	public int getPackageQty() {
 		return packageQty;
 	}
 
-	int[] getZipcode() {
+	public int[] getZipcode() {
 		return zipcode;
 	}
 

@@ -1,14 +1,22 @@
-package com.publiclockerserver;
+package com.publiclockerserver.utils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.servlet.ServletInputStream;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.publiclockerserver.DaoFactory;
 
 public class BeanUtils {
 	public static String getStringFromRS(ResultSet rs, String column) {
@@ -82,5 +90,47 @@ public class BeanUtils {
 
 		return str;
 	}
+
+	public static String addSingleQuote(String str) {
+		return new String("'" + str + "'");
+	}
+
+	public static void openLockerDoor() {
+		// TODO Auto-generated method stub
+
+	}
+
+	public static String getJsonStringFromRS(ResultSet rs) {
+		List<Map<String, String>> list = new ArrayList<Map<String, String>>();
+		Map<String, String> map = new HashMap<String, String>();
+		Gson gson = new Gson();
+		int columnCount;
+		try {
+			while (rs.next()) {
+
+				ResultSetMetaData metaData = rs.getMetaData();
+				columnCount = metaData.getColumnCount();
+				for (int i = 1; i <= columnCount; i++) {
+
+					String columnName = metaData.getColumnLabel(i);
+
+					String value = rs.getString(columnName);
+
+					map.put(columnName, value);
+
+				}
+				list.add(map);
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return gson.toJson(list);
+	}
+	
+	public static String jsonObjectToJsonArray(String str) {
+		return "["+str.substring(1,str.length()-1)+"]";
+	}
+	
 
 }

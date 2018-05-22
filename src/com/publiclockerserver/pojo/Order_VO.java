@@ -1,7 +1,7 @@
-package com.publiclockerserver;
+package com.publiclockerserver.pojo;
 
 public class Order_VO {
-	private String apiKey,orderNumber,lockerID;
+	private String apiKey, orderNumber, lockerID;
 
 	private Order_VO(String apiKey, String orderNumber, String lockerID) {
 		super();
@@ -10,15 +10,15 @@ public class Order_VO {
 		this.lockerID = lockerID;
 	}
 
-	String getApiKey() {
+	public String getApiKey() {
 		return apiKey;
 	}
 
-	String getOrderNumber() {
+	public String getOrderNumber() {
 		return orderNumber;
 	}
 
-	String getLockerID() {
+	public String getLockerID() {
 		return lockerID;
 	}
 }

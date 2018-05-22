@@ -1,6 +1,6 @@
-package com.publiclockerserver;
+package com.publiclockerserver.dao;
 
-interface VerificationDao {
+public interface VerificationDao {
 	boolean verification(String column, String table, String values);
 
 	int verification(String column, String value);

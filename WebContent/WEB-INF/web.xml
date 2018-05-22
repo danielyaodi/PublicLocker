@@ -9,12 +9,13 @@
     <welcome-file>default.htm</welcome-file>
     <welcome-file>default.jsp</welcome-file>
   </welcome-file-list>
-  <servlet>
-    <servlet-name>LockerRequestServlet</servlet-name>
-    <servlet-class>com.publiclockerserver.LockerRequestServlet</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>LockerRequestServlet</servlet-name>
+  <filter>
+    <filter-name>APIKeyFilter</filter-name>
+    <filter-class>com.publiclockerserver.filter.APIKeyFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>APIKeyFilter</filter-name>
     <url-pattern>/LockerRequestServlet</url-pattern>
-  </servlet-mapping>
+    <url-pattern>/OrderConfirmServlet</url-pattern>
+  </filter-mapping>
 </web-app>

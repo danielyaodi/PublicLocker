@@ -1,4 +1,4 @@
-package com.publiclockerserver;
+package com.publiclockerserver.dao;
 
 import java.util.Map;
 

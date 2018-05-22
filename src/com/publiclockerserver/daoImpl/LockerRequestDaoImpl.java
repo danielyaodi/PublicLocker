@@ -1,4 +1,4 @@
-package com.publiclockerserver;
+package com.publiclockerserver.daoImpl;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,8 +10,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.publiclockerserver.SQLstatement;
+import com.publiclockerserver.purgeTimer;
+import com.publiclockerserver.dao.LockerRequestDao;
+import com.publiclockerserver.pojo.AddressRequest_VO;
+import com.publiclockerserver.utils.BeanUtils;
+import com.publiclockerserver.utils.C3p0Utils;
+
 public class LockerRequestDaoImpl implements LockerRequestDao {
-	LockerRequestDaoImpl(AddressRequest_VO address) {
+	public LockerRequestDaoImpl(AddressRequest_VO address) {
 		super();
 		this.apiKey = address.getApiKey();
 		this.orderNumber = address.getOrderNumber();
@@ -28,7 +35,7 @@ public class LockerRequestDaoImpl implements LockerRequestDao {
 	Connection conn = C3p0Utils.getConnection();
 
 	@Override
-	public List<Map<String, String>> addressQuery() {
+	public String addressQuery() {
 		String zipStr = Arrays.toString(zipcode); // convert zipcode array to zipcode string;
 		zipStr = zipStr.substring(1, zipStr.length() - 1); // remove [ ]from converted string;
 		String getCellAndLockerSQL = SQLstatement.getCellAndLockerSQL(zipStr, cellType);
@@ -60,15 +67,16 @@ public class LockerRequestDaoImpl implements LockerRequestDao {
 
 		String sql = SQLstatement.getLockerAddressSQL(lockerStr);
 		ResultSet addressRS = C3p0Utils.getResultSet(conn, sql); // get address columns to RS;
-		List<Map<String, String>> addressList = getAddressMap(addressRS); // call this method to export address columns
-																			// to Map list.
+		// List<Map<String, String>> addressList = getAddressMap(addressRS); // call
+		// this method to export address columns
+		// to Map list.
 
 		commitRecorder(cellMap, lockerList, orderNumber, apiKey, packageQty);
 		C3p0Utils.close(cellRS);
 		C3p0Utils.close(addressRS);
 		C3p0Utils.close(conn);
 
-		return addressList;
+		return BeanUtils.getJsonStringFromRS(addressRS);
 	}
 
 	private HashMap<String, Integer> lockerCounter(HashMap<String, String> cellMap,
@@ -143,24 +151,24 @@ public class LockerRequestDaoImpl implements LockerRequestDao {
 
 	}
 
-	private List<Map<String, String>> getAddressMap(ResultSet rs) {
-		List<Map<String, String>> list = new ArrayList<Map<String, String>>();
-		Map<String, String> map = new HashMap<String, String>();
-		try {
-			while (rs.next()) {
-				map.put("lockerID", rs.getString("lockerID"));
-				map.put("street", rs.getString("street"));
-				map.put("city", rs.getString("city"));
-				map.put("state", rs.getString("state"));
-				map.put("zipcode", rs.getString("zipcode"));
-				list.add(map);
-
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-
-		return list;
-	}
+	// private List<Map<String, String>> getAddressMap(ResultSet rs) {
+	// List<Map<String, String>> list = new ArrayList<Map<String, String>>();
+	// Map<String, String> map = new HashMap<String, String>();
+	// try {
+	// while (rs.next()) {
+	// map.put("lockerID", rs.getString("lockerID"));
+	// map.put("street", rs.getString("street"));
+	// map.put("city", rs.getString("city"));
+	// map.put("state", rs.getString("state"));
+	// map.put("zipcode", rs.getString("zipcode"));
+	// list.add(map);
+	//
+	// }
+	// } catch (SQLException e) {
+	// e.printStackTrace();
+	// }
+	//
+	// return list;
+	// }
 
 }

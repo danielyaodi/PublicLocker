@@ -1,4 +1,4 @@
-package com.publiclockerserver;
+package com.publiclockerserver.controller;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,10 +12,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.gson.Gson;
+import com.publiclockerserver.DaoFactory;
+import com.publiclockerserver.pojo.Order_VO;
+import com.publiclockerserver.utils.BeanUtils;
 
-/**
- * Servlet implementation class OrderConfirmServlet
- */
+ 
 @WebServlet("/OrderConfirmServlet")
 public class OrderConfirmServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -32,7 +33,7 @@ public class OrderConfirmServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		doGet(request, response);
+//		doGet(request, response);
 
 		String orderConfirmStr = BeanUtils.servletRequestReader(request.getInputStream()); // read all json file from
 																							// request.
@@ -40,16 +41,14 @@ public class OrderConfirmServlet extends HttpServlet {
 		Gson gson = new Gson();
 		Order_VO order = gson.fromJson(orderConfirmStr, Order_VO.class); // convert json to Order_VO class
 
-		if (BeanUtils.checkAPIKey(order.getApiKey())) { // verify if valid client APIkey
+		if (BeanUtils.checkOrderNumber(order.getOrderNumber())) { // verify if valid orderNumber, timeout since
+																	// request.
 
-			if (BeanUtils.checkOrderNumber(order.getOrderNumber())) { // verify if valid orderNumber, timeout since
-																		// request.
-
-				Map<String, String> codeMap = DaoFactory.getConfirmOrderDaoInstance(order).confirmOrder(); //get deliveryCode & pickupCode;
-				String codeStr = gson.toJson(codeMap);			//covert to json
-				response.getOutputStream().write(codeStr.getBytes()); 		// send json back to client through response obj.
-			}
-
+			Map<String, String> codeMap = DaoFactory.getConfirmOrderDaoInstance(order).confirmOrder(); // get
+																										// deliveryCode
+																										// & pickupCode;
+			String codeStr = gson.toJson(codeMap); // covert to json
+			response.getOutputStream().write(codeStr.getBytes()); // send json back to client through response obj.
 		}
 
 	}
