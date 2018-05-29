@@ -34,8 +34,6 @@ public class LockerRequestServlet extends HttpServlet {
 			throws ServletException, IOException {
 		response.getWriter().append("Served at: ").append(request.getContextPath());
 
-		System.out.println("***********" + i);
-		i++;
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)

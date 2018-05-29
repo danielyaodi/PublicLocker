@@ -28,4 +28,8 @@ public class DaoFactory {
 		return new UpdateLockerDaoImpl();
 	}
 
+	public static ClientDaoImpl getClientDaoInstance() {
+		return new ClientDaoImpl();
+	}
+
 }

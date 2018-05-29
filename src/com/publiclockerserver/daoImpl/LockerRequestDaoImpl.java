@@ -38,137 +38,92 @@ public class LockerRequestDaoImpl implements LockerRequestDao {
 	public String addressQuery() {
 		String zipStr = Arrays.toString(zipcode); // convert zipcode array to zipcode string;
 		zipStr = zipStr.substring(1, zipStr.length() - 1); // remove [ ]from converted string;
-		String getCellAndLockerSQL = SQLstatement.getCellAndLockerSQL(zipStr, cellType);
+		String getLockerRSSQL = SQLstatement.getCellAndLockerSQL(zipStr, cellType); // complex SQL; get count(cellID),
+																					// lockerID
+		ArrayList<String> lockerList = new ArrayList<String>();
+		ResultSet lockerRS = C3p0Utils.getResultSet(conn, getLockerRSSQL); // get cellID count and lockerID to RS;
 
-		ResultSet cellRS = C3p0Utils.getResultSet(conn, getCellAndLockerSQL); // get cellID and lockerID to RS;
-
-		HashMap<String, String> cellMap = new HashMap<>();
 		try {
-			while (cellRS.next()) {
-				cellMap.put(cellRS.getString("cellID"), cellRS.getString("lockerID")); // export cellID and lockerID to
-																						// Map;
+			while (lockerRS.next()) {
+				if (lockerRS.getInt(1) >= packageQty) {
+					lockerList.add(lockerRS.getString("lockerID"));
+
+				}
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 
-		HashMap<String, Integer> lockerCountMap = new HashMap<String, Integer>();
-		lockerCounter(cellMap, lockerCountMap);
+		String lockerListStr = String.join(",", lockerList); // convert the list to string for SQL;formal
+																// value1,value2..
+		String lockerAddressSQL = SQLstatement.getLockerAddressSQL(lockerListStr);
+		lockerRS = C3p0Utils.getResultSet(conn, lockerAddressSQL);// use lockerRS receive lockerAddress
+		String lockerAddressJsonStr = BeanUtils.getJsonStringFromRS(lockerRS); // convert lockerRS to Json for sending
+																				// to client
 
-		List<String> lockerList = new ArrayList<String>();
-		for (Map.Entry<String, Integer> entry : lockerCountMap.entrySet()) {
-			if (entry.getValue() >= packageQty) {
-				lockerList.add(entry.getKey()); // export all qualified lockerID to a list;
+		insertAssignedToCustomer(lockerListStr); // three things to do: insert all to AssignedTocustomer;
+													// cellCommitted->1
+		// inlockerCellInfo; purge Timer;
 
-			}
-
-		}
-		String lockerStr = String.join(",", lockerList); // convert the list to string for sql;
-
-		String sql = SQLstatement.getLockerAddressSQL(lockerStr);
-		ResultSet addressRS = C3p0Utils.getResultSet(conn, sql); // get address columns to RS;
-		// List<Map<String, String>> addressList = getAddressMap(addressRS); // call
-		// this method to export address columns
-		// to Map list.
-
-		commitRecorder(cellMap, lockerList, orderNumber, apiKey, packageQty);
-		C3p0Utils.close(cellRS);
-		C3p0Utils.close(addressRS);
+		C3p0Utils.close(lockerRS);
 		C3p0Utils.close(conn);
 
-		return BeanUtils.getJsonStringFromRS(addressRS);
+		return lockerAddressJsonStr;
 	}
 
-	private HashMap<String, Integer> lockerCounter(HashMap<String, String> cellMap,
-			HashMap<String, Integer> lockerCountMap) {
+	// insert committed cellIDs to AssignedToCustomer table;
+	private void insertAssignedToCustomer(String lockerListStr) {
 
-		for (Map.Entry<String, String> entry : cellMap.entrySet()) {
-			if (lockerCountMap.containsKey(entry.getValue())) {
-				lockerCountMap.put(entry.getValue(), lockerCountMap.get(entry.getValue()) + 1); // count how many
-																								// lockerID
-				// qualify for the
-				// packageQty;
+		String cellIDSQL = SQLstatement.getSelectInLimitSQL("cellID,lockerID", "LockerCellInfo", "lockerID",
+				lockerListStr, packageQty);
+		// SQL for select cellID RS from LockerCellInfo table
 
-			} else {
-				lockerCountMap.put(entry.getValue(), 1);
+		ResultSet cellRS = C3p0Utils.getResultSet(conn, cellIDSQL);// get all cellID for LockerID to RS
+
+		String insertToCommitSQL = SQLstatement.getInsertSQL("AssignedToCustomer", "?,?,?,?,?");
+		// SQL insert all into AssignedToCustomer
+
+		PreparedStatement pstmt = C3p0Utils.getPstmt(conn, insertToCommitSQL);
+		// pstmt for insert into AssignedToCustomer;
+
+		ArrayList<String> cellCommitList = new ArrayList<String>(); // for changing commit->1 in lockerCellInfo use;
+
+		try {
+			while (cellRS.next()) {
+
+				String cellID = cellRS.getString("cellID");
+				String lockerID = cellRS.getString("lockerID");
+				cellCommitList.add(cellID); // export cellIDs to cellList;
+				pstmt.setString(1, cellID);
+				pstmt.setString(2, lockerID);
+				pstmt.setString(3, orderNumber);
+				pstmt.setString(4, apiKey);
+				pstmt.setInt(5, packageQty);
+				pstmt.addBatch(); // looping to insert all cellIDs to AssignedToCustomer;
 			}
+
+			pstmt.executeBatch(); // submit all;
+
+			cellCommittedToOne(cellCommitList); // change LockerCellInfo table's cellCommitted to 1;
+
+			purgeTimer.purgeCommittedCellTimer(orderNumber, cellCommitList); // setup purge task;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			C3p0Utils.close(cellRS);
+			C3p0Utils.close(pstmt);
 
 		}
 
-		return null;
 	}
 
-	private void commitRecorder(HashMap<String, String> cellMap, List<String> lockerList, String orderNumber,
-			String apiKey, int packageQty) {
-		List<String> list = new ArrayList<String>();
-		List<String> cellCommitList = new ArrayList<String>();
-
-		for (String locker : lockerList) {
-			List<String> valueList = new ArrayList<String>();
-			int counter = 0; // count how many cellID get with same lockerID
-			for (Map.Entry<String, String> entry : cellMap.entrySet()) {
-				if (counter < packageQty && locker.equals(entry.getValue())) { // check if the current entry's
-																				// value(lockerID) == locker(current
-																				// lockerID);
-					/**
-					 * insert format: ('cellID','orderNumber','apiKey',packageQty,'lockerID') for
-					 * each record.
-					 */
-					// add these values to a list, for String.join method
-					valueList.add("'" + entry.getKey() + "'");
-					valueList.add("'" + orderNumber + "'");
-					valueList.add("'" + apiKey + "'");
-					valueList.add(String.valueOf(packageQty));
-					valueList.add("'" + locker + "'");
-					cellCommitList.add("'" + entry.getKey() + "'");
-					// setCellCommited(cellCommitList);
-
-					counter++;
-				}
-
-			}
-			list.add("(" + String.join(",", valueList) + ")"); // convert the list to the insert format for one record,
-																// and add to another list.
-		}
-
-		insertAssignedToCustomer(list); // insert committed cellIDs to AssignedToCustomer table;
-
-		cellCommittedToOne(cellCommitList); // change LockerCellInfo table's cellCommitted to 1;
-		purgeTimer.purgeCommittedCellTimer(orderNumber, cellCommitList);
-
-	}
-
+	// change LockerCellInfo table's cellCommitted to 1;
 	private void cellCommittedToOne(List<String> cellCommitList) {
-		String cellCommittedSql = SQLstatement.cellCommittedToOneSQL(cellCommitList);
-
-		C3p0Utils.executeUpdate(conn, cellCommittedSql);
-
-	}
-
-	private void insertAssignedToCustomer(List<String> list) {
-		String commitSQL = SQLstatement.commitSQL + String.join(",", list);
-		C3p0Utils.executeUpdate(conn, commitSQL);
+		String cellCommittedSQL = SQLstatement.getUpdateInSQL("LockerCellInfo", "cellCommitted", "1", "cellID",
+				String.join(",", cellCommitList));
+		C3p0Utils.executeUpdate(conn, cellCommittedSQL);
 
 	}
-
-	// private List<Map<String, String>> getAddressMap(ResultSet rs) {
-	// List<Map<String, String>> list = new ArrayList<Map<String, String>>();
-	// Map<String, String> map = new HashMap<String, String>();
-	// try {
-	// while (rs.next()) {
-	// map.put("lockerID", rs.getString("lockerID"));
-	// map.put("street", rs.getString("street"));
-	// map.put("city", rs.getString("city"));
-	// map.put("state", rs.getString("state"));
-	// map.put("zipcode", rs.getString("zipcode"));
-	// list.add(map);
-	//
-	// }
-	// } catch (SQLException e) {
-	// e.printStackTrace();
-	// }
-	//
-	// return list;
-	// }
 
 }

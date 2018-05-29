@@ -5,13 +5,16 @@ import java.util.List;
 import com.publiclockerserver.utils.BeanUtils;
 
 public class SQLstatement {
-	public static String confirmOrderSQL = "INSERT INTO ConfirmedOrder VALUES(?,?,?,?,?,?,now.())";
-	public static String commitSQL = "INSERT INTO AssignedToCustomer (cellID, orderNumber,apiKey,packageQty,lockerID) VALUES ";
+	public static String confirmOrderSQL = "INSERT INTO ConfirmedOrder VALUES(?,?,?,?,?,?,now())";
+	// public static String commitSQL = "INSERT INTO AssignedToCustomer
+	// (cellID,orderNumber,apiKey,packageQty,lockerID) VALUES "; // for
+	// insertAssignedToCustome();
 
-	public static String insertNewLockerSQL = getInsertSQL("LockerAddress", "?,?,?,?,?,now.()");
+	public static String insertNewLockerSQL = getInsertSQL("LockerAddress", "?,?,?,?,?,now()");
 	public static String insertNewCellSQL = getInsertSQL("LockerCellInfo", "?,?,?,1,0,1");
 	public static String showAllLockersSQL = getSelectSQL("*", "LockerAddress");
 	public static String UpdateLockerAddressSQL = "UPDATE LockerAddress SET street =?,city=?,state=?,zipcode=? WHERE lockerID=?";
+	public static String newClientSQL = getInsertSQL("CustomerInfo", "?,?,?,now(),?");
 
 	// for showAllCellsInLocker();
 	public static String getShowAllCellsInLockerSQL(String lockerID) {
@@ -36,8 +39,7 @@ public class SQLstatement {
 
 	// for insertNewLocker();
 	public static String getInsertSQL(String table, String value) {
-
-		return "INSERT INTO" + table + "VALUES(" + value + ")";
+		return "INSERT INTO " + table + " VALUES (" + value + ")";
 	}
 
 	// for insertHistory();
@@ -52,18 +54,33 @@ public class SQLstatement {
 	// public method
 	public static String getUpdateSQL(String table, String columns, String values, String whereColumn,
 			String whereValue) {
-		return "UPDATE" + table + "SET (" + columns + ") VALUES(" + values + ") WHERE" + whereColumn + "=" + whereValue;
+		return "UPDATE " + table + " SET (" + columns + ") VALUES( " + values + " ) WHERE" + whereColumn + "="
+				+ whereValue;
 	}
 
-	static String getSelectSQL(String columns, String table, String whereColumn, String whereValue) {
+	// for cellCommitted->1 LockerCellInfo
+	public static String getUpdateInSQL(String table, String columns, String values, String whereColumn,
+			String whereValue) {
+		return "UPDATE " + table + " SET (" + columns + ") VALUES( " + values + " ) WHERE" + whereColumn + "in ("
+				+ whereValue + " )";
+	}
+
+	public static String getSelectSQL(String columns, String table, String whereColumn, String whereValue) {
 		return "SELECT" + columns + "FROM" + table + "WHERE" + whereColumn + "=" + whereValue;
 	}
 
-	static String getSelectSQL(String columns, String table) {
+	// using get packageQty cellIDs from LockerCellInfo in lockerIDs;
+	public static String getSelectInLimitSQL(String columns, String table, String whereColumn, String whereValue,
+			int limit) {
+		return "SELECT " + columns + " FROM " + table + " WHERE " + whereColumn + " in( " + whereValue + " ) LIMIT "
+				+ limit;
+	}
+
+	public static String getSelectSQL(String columns, String table) {
 		return "SELECT" + columns + "FROM" + table;
 	}
 
-	static String insertFromTable(String destTable, String destColumn, String origTable, String origColumn,
+	public static String insertFromTable(String destTable, String destColumn, String origTable, String origColumn,
 			String whereColumn, String whereValue) {
 		return "INSERT INTO " + destTable + "(" + destColumn + ")" + "SELECT" + origColumn + "FROM" + origTable
 				+ "WHERE" + whereColumn + "=" + whereValue;
@@ -90,8 +107,18 @@ public class SQLstatement {
 		return "DELETE FROM AssignedToCustomer WHERE orderNumber = '" + orderNumber + "'";
 	}
 
+	// public static String verificationSQL(String column, String table, String
+	// value) {
+	// return "select" + column + " from " + table + " where" + column + " ='" +
+	// value + "'";
+	// }
 	public static String verificationSQL(String column, String table, String value) {
-		return "select" + column + " from " + table + " where" + column + " ='" + value + "'";
+		return "SELECT COUNT(" + column + ") FROM " + table + " WHERE" + column + " ='" + value + "'";
+	}
+
+	public static String verificationSQL(String column1, String column2, String table, String value1, String value2) {
+		return "SELECT COUNT(apiKey),apiKey FROM " + table + " WHERE " + column1 + " ='" + value1 + "' and " + column2
+				+ " ='" + value2 + "' GROUP BY apiKey";
 	}
 
 	public static String codeVerificationSQL(String code) {
@@ -99,23 +126,13 @@ public class SQLstatement {
 	}
 
 	public static String getCellAndLockerSQL(String zipStr, int cellType) {
-		return "select cellID,lockerID from CellInfo where lockerID in "
-				+ "(select lockerID from LockerAddress where zipcode in (" + zipStr + ") and cellHealth = 1 and "
-				+ "cellAvailability=1 and cellCommitted=0 and cellType =" + cellType + ")";
+		return "SELECT cellID,lockerID FROM LockerCellInfo WHERE lockerID IN "
+				+ "(SELECT lockerID FROM LockerAddress WHERE zipcode in (" + zipStr + ")) and cellHealth = 1 and "
+				+ "cellAvailability=1 and cellCommitted=0 and cellType =" + cellType;
 	}
 
 	public static String getLockerAddressSQL(String lockerStr) {
 		return "select lockerID,street, city,state, zipcode from LockerAddress where lockerID in (" + lockerStr + ")";
-	}
-
-	public static String cellCommittedToOneSQL(List<String> cellCommitList) {
-		return "UPDATE LockerCellInfo SET cellCommitted = 1 WHERE cellID in ( " + String.join(",", cellCommitList)
-				+ ")";
-	}
-
-	public static String cellCommittedToZeroSQL(List<String> cellCommitList) {
-		return "UPDATE LockerCellInfo SET cellCommitted = 0 WHERE cellID in ( " + String.join(",", cellCommitList)
-				+ ")";
 	}
 
 	public static String removeDeliveryCodeSQL(String cellID) {

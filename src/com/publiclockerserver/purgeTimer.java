@@ -7,16 +7,20 @@ import java.util.TimerTask;
 import com.publiclockerserver.utils.C3p0Utils;
 
 public class purgeTimer {
-	public static void purgeCommittedCellTimer(String orderNumber, List<String> cellCommitList) {
+	public static void purgeCommittedCellTimer(String orderNumber, List<String> committedCellList) {
 		Timer timer = new Timer();
 		timer.schedule(new TimerTask() {
 
 			@Override
 			public void run() {
-				String cellCommittedSQL = SQLstatement.cellCommittedToZeroSQL(cellCommitList);
-				C3p0Utils.executeUpdate(cellCommittedSQL);
-				String removeCommitSQL = SQLstatement.removeCommitSQL(orderNumber);
-				C3p0Utils.executeUpdate(removeCommitSQL);
+				// SQL for purge committed cell in LockerCellInfo
+				String cellCommittedPurgeSQL = SQLstatement.getUpdateInSQL("LockerCellInfo", "cellCommitted", "0",
+						"cellID", String.join(",", committedCellList));
+				C3p0Utils.executeUpdate(cellCommittedPurgeSQL); // purge committed cell in LockerCellInfo
+
+				// SQL for delete same orderNumber Record in AssignedToCusomter;
+				String removeCommitSQL = SQLstatement.getDeleteSQL("AssignedToCustomer", "orderNumber", orderNumber);
+				C3p0Utils.executeUpdate(removeCommitSQL);// delete same orderNumber Record in AssignedToCusomter;
 			}
 
 		}, 300000);

@@ -20,6 +20,7 @@ public class AddLockerDaoImpl implements AddLockerDao {
 		this.city = addLocker.getCity();
 		this.state = addLocker.getState();
 		this.zipcode = addLocker.getZipcode();
+		System.out.println(street+city+state+zipcode+cellTypeIIIQty);
 	}
 
 	int cellTypeIQty;
@@ -66,8 +67,14 @@ public class AddLockerDaoImpl implements AddLockerDao {
 	}
 
 	public void insertNewLockerAddress() {
-		pstmt = C3p0Utils.getPstmt(conn, SQLstatement.insertNewLockerSQL);
+		
+		
+//		String xxx=;
+//		String xxx= "Insert into LockerAddress (lockerID,street,city,state,zipcode,addedTime) values(?,?,?,?,?,now())";
+		pstmt = C3p0Utils.getPstmt(conn,SQLstatement.insertNewLockerSQL);
+		
 		newLockerID = UUID.randomUUID().toString().replaceAll("-", "");
+		System.out.println(newLockerID);
 		try {
 			pstmt.setString(1, newLockerID);
 			pstmt.setString(2, street);

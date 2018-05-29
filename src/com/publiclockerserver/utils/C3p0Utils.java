@@ -15,7 +15,6 @@ public class C3p0Utils {
 		try {
 			conn = dataSource.getConnection();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -32,7 +31,10 @@ public class C3p0Utils {
 		}
 		return pstmt;
 	}
-
+	
+	
+	
+	//need manually close
 	public static ResultSet getResultSet(Connection conn, String sql) {
 
 		ResultSet rs = null;
@@ -41,11 +43,9 @@ public class C3p0Utils {
 			rs = pstmt.executeQuery();
 		} catch (SQLException e) {
 			e.printStackTrace();
-		} finally {
-			close(pstmt);
 		}
-
 		return rs;
+
 	}
 
 	public static void executeUpdate(String sql) {

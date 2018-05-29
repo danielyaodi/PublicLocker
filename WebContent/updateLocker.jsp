@@ -29,7 +29,6 @@
 										alert("error");
 									},
 									success : function(json) {
-										alert(json)
 										var data = $.parseJSON(json);
 										$
 												.each(

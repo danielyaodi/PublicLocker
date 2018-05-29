@@ -4,9 +4,9 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>Insert title here</title>
+<title>Add a New Locker</title>
 </head>
-<script type="text/javascript" src="js/jquery-3.3.1.js"></script>
+  <script type="text/javascript" src="js/jquery-3.3.1.js"></script>  
 <p>
 	<a href="http://127.0.0.1:8080/PublicLockerServer/admin.jsp">Home
 		Page</a>
@@ -14,7 +14,7 @@
 <h2 align="center">Add a New Locker</h2>
 <body>
 
-	<form id="form" name="form" action="/AddLockerServlet" method="post">
+	<form id="form" name="form" action="" method="post">
 
 		<table align="center" height="300">
 			<tr>
@@ -26,7 +26,7 @@
 			<tr>
 				<td>Street Number:</td>
 				<td></td>
-				<td><input type="text" name="address" id='address'
+				<td><input type="text" name="street" id='street'
 					style="width: 200px; height: 20px; font-size: 15px" /></td>
 			</tr>
 			<tr>
@@ -49,6 +49,81 @@
 			</tr>
 
 			<tr>
+				<td>cellTypeI Qty:</td>
+				<td></td>
+				<td>cellTypeII Qty:</td>
+				<td>cellTypeIII Qty:</td>
+
+			</tr>
+
+
+
+			<tr>
+				<td><select name="cellTypeIQty">
+						<option value=0>0</option>
+						<option value=1>1</option>
+						<option value=2>2</option>
+						<option value=3>3</option>
+						<option value=4>4</option>
+						<option value=5 selected>5</option>
+						<option value=6>6</option>
+						<option value=7>7</option>
+						<option value=8>8</option>
+						<option value=9>9</option>
+						<option value=10>10</option>
+						<option value=11>11</option>
+						<option value=12>12</option>
+						<option value=13>13</option>
+						<option value=14>14</option>
+						<option value=15>15</option>
+				</select></td>
+				<td></td>
+
+				<td><select name="cellTypeIIQty">
+						<option value=0>0</option>
+						<option value=1>1</option>
+						<option value=2>2</option>
+						<option value=3>3</option>
+						<option value=4>4</option>
+						<option value=5 selected>5</option>
+						<option value=6>6</option>
+						<option value=7>7</option>
+						<option value=8>8</option>
+						<option value=9>9</option>
+						<option value=10>10</option>
+						<option value=11>11</option>
+						<option value=12>12</option>
+						<option value=13>13</option>
+						<option value=14>14</option>
+						<option value=15>15</option>
+				</select></td>
+
+
+				<td><select name="cellTypeIIIQty" >
+						<option value=0>0</option>
+						<option value=1>1</option>
+						<option value=2>2</option>
+						<option value=3>3</option>
+						<option value=4>4</option>
+						<option value=5 selected>5</option>
+						<option value=6>6</option>
+						<option value=7>7</option>
+						<option value=8>8</option>
+						<option value=9>9</option>
+						<option value=10>10</option>
+						<option value=11>11</option>
+						<option value=12>12</option>
+						<option value=13>13</option>
+						<option value=14>14</option>
+						<option value=15>15</option>
+				</select></td>
+
+
+			</tr>
+
+
+
+			<tr>
 			</tr>
 			<tr>
 				<td><input type="reset" name="reset" id="reset"
@@ -62,26 +137,48 @@
 
 		</table>
 
- 
+
 
 	</form>
 
 
 
-	<script type="text/javascript">
+	 <script type="text/javascript">
 		$("#submit").click(function() {
 			alert("done");
 			$.ajax({
-				url : "/AddLockerServlet",
+				url : "/PublicLockerServer/AddLockerServlet",
 				type : "POST",
-				data : ('form').serializeArray(),
-				contentType : "application/x-www-form-urlencoded",
+				data:JSON.stringify($('form').serializeObject()),
+				contentType:"application/json",
 				success : function() {
+					alert("done2")
 				}
 
 			})
 		})
-	</script>
+		
+		$.fn.serializeObject = function() {
+        var o = {};
+        var a = this.serializeArray();
+        $.each(a, function() {
+            if (o[this.name]) {
+                if (!o[this.name].push) {
+                    o[this.name] = [ o[this.name] ];
+                }
+                o[this.name].push(this.value || '');
+            } else {
+                o[this.name] = this.value || '';
+            }
+        });
+        return o;
+    };
+		
+		
+		
+		
+		
+	</script> 
 </body>
 
 

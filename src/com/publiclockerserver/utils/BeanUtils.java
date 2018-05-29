@@ -127,10 +127,9 @@ public class BeanUtils {
 		}
 		return gson.toJson(list);
 	}
-	
+
 	public static String jsonObjectToJsonArray(String str) {
-		return "["+str.substring(1,str.length()-1)+"]";
+		return "[" + str.substring(1, str.length() - 1) + "]";
 	}
-	
 
 }

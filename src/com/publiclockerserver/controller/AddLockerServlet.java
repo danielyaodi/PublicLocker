@@ -20,13 +20,13 @@ public class AddLockerServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		String orderConfirmStr = BeanUtils.servletRequestReader(request.getInputStream()); // read all json file from
-																							// request.
+		String newLockerStr = BeanUtils.servletRequestReader(request.getInputStream()); // read all json file from
+		System.out.println("addLockerServlet:"+newLockerStr);																					// request.
 		Gson gson = new Gson();
-		AddLocker_VO addLocker = gson.fromJson(orderConfirmStr, AddLocker_VO.class); // convert json string to
+		AddLocker_VO newLockerVO = gson.fromJson(newLockerStr, AddLocker_VO.class); // convert json string to
 																						// AddLocker_VO obj
-		DaoFactory.getAddLockerDaoInstance(addLocker).addLocker(); // create new LockerID and cellID, insert to
-																	// database;
+		DaoFactory.getAddLockerDaoInstance(newLockerVO).addLocker(); // create new LockerID and cellID, insert to
+		System.out.println("addLockerServlet added");															// database;
 
 	}
 
